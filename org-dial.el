@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 ;;; org-dial.el --- Provide org links to dial with the softphone
 ;;; application linphone
 
@@ -24,29 +26,33 @@
 ;; `org-dial.el' defines the new link type `tel' for telephone
 ;; numbers in contacts (refer to org-contacts).  Calling this link type
 ;; leads to the execution of a linphone command dialing this number.
-
-;;; Code:
+;;
 
 (require 'org)
 
-;; org link functions
-;; dial link
+;;; Code:
+
 (org-add-link-type "tel" 'org-dial)
+
+(defgroup org-dial nil
+  "Options about softphone support."
+  :group 'org)
 
 (defcustom org-dial-program "linphonecsh dial "
   "Name of the softphone executable used to dial a phone number in a `tel:' link."
   :type '(string)
-  :group 'org)
+  :group 'org-dial)
 
 (defcustom org-dial-phone-key "\\(Phone.*Value\\)"
   "Regular expression for the key of a property containing a phone number.
 
-The default is following the Google Contacts scheme of key naming, where we have for instance:
+The default is following the Google Contacts scheme of key naming, where we have
+for instance:
 
 :Phone 1 - Type: Work
 :Phone 1 - Value: +49 1234 5678
 :Phone 2 - Type: Home
-:Phone 2 - Value: +49 56781234 
+:Phone 2 - Value: +49 56781234
 
 Another common scheme
 
@@ -59,23 +65,26 @@ would be matched by the expression
 
 ':\\(MOBILE\\|.*PHONE\\):'"
   :type '(string)
-  :group 'org)
+  :group 'org-dial)
 
-(defun org-dial (phonenumber)
-  "Dial the phone number. The variable phonenumber should contain only numbers, whitespaces, backslash and maybe a `+' at the beginning."
-  ;; remove whitespaces from phonenumber
+(defun org-dial (phone-number)
+  "Dial the phone number.  The variable PHONE-NUMBER should contain only numbers,
+whitespaces, backslash, parenthesis and maybe a `+' at the beginning."
   (shell-command
-   (concat org-dial-program (trim-phone-number phonenumber))))
+   (concat org-dial-program (org-dial-trim-phone-number phone-number))))
 
-(defun trim-phone-number (phonenumber)
-  "Remove whitespaces from a telephone number"
+(defun org-dial-trim-phone-number (phone-number)
+  "Sanitize PHONE-NUMBER by removing whitespaces, slashes, hyphens and parentheses."
   (mapconcat 'identity
              (split-string
               (mapconcat 'identity
-                         (split-string phonenumber "(0)") "") "[()/ -]") ""))
+                         (split-string phone-number "(0)") "") "[()/ -]") ""))
 
 (defun org-dial-from-property (&optional prop)
-  "Dial a property value with org-dial.  Asks for the appropriate property key.  If point is within the property line containing the phone number, it dials immediately."
+  "Dial a property value with ORG-DIAL.  PROP is the appropriate property key.
+If point is within the property line containing the phone number or PROP is
+explicitly given, the function will dial immediately.
+Otherwise it will ask for a property to use."
   (interactive)
   (let* ((props (org-entry-properties))
          (prop (or prop
@@ -85,8 +94,8 @@ would be matched by the expression
                     "Get property: "
                     props t)))
          (val (org-entry-get-with-inheritance prop)))
-    (if val (progn
-              (org-dial val))
+    (if val
+        (org-dial val)
       (message "No valid value for %s" prop))))
 
 (provide 'org-dial)
