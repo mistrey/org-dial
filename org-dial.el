@@ -38,6 +38,7 @@
   "Options about softphone support."
   :group 'org)
 
+;; Replace "linphonecsh dial " with "Skype.exe /callto:" to make this work with Skype on Microsoft Windows
 (defcustom org-dial-program "linphonecsh dial "
   "Name of the softphone executable used to dial a phone number in a `tel:' link."
   :type '(string)
