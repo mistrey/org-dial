@@ -43,15 +43,14 @@
 
 (defun org-dial-export (path desc format)
   "Create the export version of a tel link specified by PATH or DESC.
-If exporting to either HTML or LaTeX FORMAT the link will be
-italicized, in all other cases it is left unchanged."
-  (when (string= desc (format "tel:%s" path))
-    (setq desc path))
+If exporting to HTML the link will become a HTML tel link. With
+LaTeX FORMAT the phone number will be used as is. In ODT it will
+be emphasized. In all other cases it is left unchanged."
   (cond
-   ((eq format 'html) (format "<a href=\"%s\">%s</a>" (org-dial-trim-phone-number path) desc))
-   ((eq format 'latex) (format "%s" desc))
+   ((eq format 'html) (format "<a href=\"tel:%s\">%s</a>" (org-dial-trim-phone-number path) path))
+   ((eq format 'latex) (format "%s" path))
    ((eq format 'odt)
-    (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" desc))
+    (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" path))
    (t desc)))
 
 ;; Replace "linphonecsh dial " with "Skype.exe /callto:" to make this work with Skype
