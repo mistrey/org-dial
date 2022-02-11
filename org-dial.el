@@ -31,13 +31,30 @@
 (require 'org)
 
 ;;; Code:
-
-(org-add-link-type "tel" 'org-dial)
+(org-link-set-parameters
+ "tel"
+ :follow 'org-dial
+ :export 'org-dial-export
+ :help-echo "Click to dial the number.")
 
 (defgroup org-dial nil
   "Options about softphone support."
   :group 'org)
 
+(defun org-dial-export (path desc format)
+  "Create the export version of a tel link specified by PATH or DESC.
+If exporting to either HTML or LaTeX FORMAT the link will be
+italicized, in all other cases it is left unchanged."
+  (when (string= desc (format "tel:%s" path))
+    (setq desc path))
+  (cond
+   ((eq format 'html) (format "<a href=\"%s\">%s</a>" (org-dial-trim-phone-number path) desc))
+   ((eq format 'latex) (format "%s" desc))
+   ((eq format 'odt)
+    (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" desc))
+   (t desc)))
+
+;; Replace "linphonecsh dial " with "Skype.exe /callto:" to make this work with Skype
 (defcustom org-dial-program "linphonecsh dial "
   "Name of the softphone executable used to dial a phone number in a `tel:' link."
   :type '(string)
@@ -68,8 +85,10 @@ would be matched by the expression
   :group 'org-dial)
 
 (defun org-dial (phone-number)
-  "Dial the phone number.  The variable PHONE-NUMBER should contain only numbers,
-whitespaces, backslash, parenthesis and maybe a `+' at the beginning."
+  "Dial the phone number.
+The variable PHONE-NUMBER should contain only numbers,
+whitespaces, backslash, parenthesis and maybe a `+' at the
+beginning."
   (shell-command
    (concat org-dial-program (org-dial-trim-phone-number phone-number))))
 
@@ -81,15 +100,16 @@ whitespaces, backslash, parenthesis and maybe a `+' at the beginning."
                          (split-string phone-number "(0)") "") "[()/ -]") ""))
 
 (defun org-dial-from-property (&optional prop)
-  "Dial a property value with ORG-DIAL.  PROP is the appropriate property key.
-If point is within the property line containing the phone number or PROP is
-explicitly given, the function will dial immediately.
-Otherwise it will ask for a property to use."
+  "Dial a property value with ORG-DIAL.
+PROP is the appropriate property key. If point is within the
+property line containing the phone number or PROP is explicitly
+given, the function will dial immediately. Otherwise it will ask
+for a property to use."
   (interactive)
   (let* ((props (org-entry-properties))
          (prop (or prop
                    (when (org-at-property-p)
-                     (org-match-string-no-properties 2))
+                     (match-string-no-properties 2))
                    (org-completing-read
                     "Get property: "
                     props t)))
