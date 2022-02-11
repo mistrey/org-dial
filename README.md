@@ -1,7 +1,7 @@
 # org-dial
 Softphone support for Emacs Org mode
 
-`org-dial.el' defines the new link type `tel' for telephone
+`org-dial.el` defines the new link type `tel` for telephone
 numbers in contacts (refer to org-contacts).  Calling this link type
 leads to the execution of a Linphone command dialing this number.
 
