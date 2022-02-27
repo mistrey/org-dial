@@ -56,9 +56,16 @@
    ((eq format 'texinfo) (format "@url{tel:%s, %s}" (org-dial-trim-phone-number path) desc))
    (t desc)))
 
-;; Replace "linphonecsh dial " with "Skype.exe /callto:" to make this work with Skype
 (defcustom org-dial-program "linphonecsh dial "
-  "Name of the softphone executable used to dial a phone number in a `tel:' link."
+  "Name of the softphone executable used to dial a phone number in a `tel:' link.
+
+Examples:
+
+linphonecsh dial
+killall -q mpg123 ; amixer set Capture 100% && amixer set Master 72% && linphonecsh dial
+Skype.exe /callto:
+Zoiper --dial=
+"
   :type '(string)
   :group 'org-dial)
 
