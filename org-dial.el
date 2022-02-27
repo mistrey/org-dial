@@ -42,15 +42,18 @@
   :group 'org)
 
 (defun org-dial-export (path desc format)
-  "Create the export version of a tel link specified by PATH or DESC.
-If exporting to HTML the link will become a HTML tel link. With
-LaTeX FORMAT the phone number will be used as is. In ODT it will
-be emphasized. In all other cases it is left unchanged."
+  "Create the export version of a tel link specified by PATH or DESC."
+  (when (string= desc nil)
+    (setq desc path))
   (cond
-   ((eq format 'html) (format "<a href=\"tel:%s\">%s</a>" (org-dial-trim-phone-number path) path))
-   ((eq format 'latex) (format "%s" path))
+   ((eq format 'ascii) (format "%s (%s)" desc (org-dial-trim-phone-number path)))
+   ((eq format 'md) (format "[%s](tel:%s)" desc (org-dial-trim-phone-number path)))
+   ((eq format 'org) (format "[[tel:%s][%s]]" (org-dial-trim-phone-number path) desc))
+   ((eq format 'html) (format "<a href=\"tel:%s\">%s</a>" (org-dial-trim-phone-number path) desc))
+   ((eq format 'latex) (format "\\href{tel:%s}{%s}" (org-dial-trim-phone-number path) desc))
    ((eq format 'odt)
-    (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" path))
+    (format "<text:a xlink:type=\"simple\" xlink:href=\"tel:%s\">%s</text:a>" (org-dial-trim-phone-number path) desc))
+   ((eq format 'texinfo) (format "@url{tel:%s, %s}" (org-dial-trim-phone-number path) desc))
    (t desc)))
 
 ;; Replace "linphonecsh dial " with "Skype.exe /callto:" to make this work with Skype
